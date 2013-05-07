@@ -1,129 +1,173 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-  <title>jsCarton - sample</title>
-  <script src="../domo/lib/domo.js"></script>
+  <meta charset="utf-8">
+  <title>cartonFactory - test</title>
+  <script src="lib/help.js"></script>
   <script src="lib/cartonFactory.js"></script>
-  <script src="lib/carton.js"></script>
+  <style></style>
 </head>
 <body>
-  <script>
+  <div id="carton_slim"> type only [ slim ] </div>
+  <div id="carton_yellow" class="existingClass">Yellow ( styles only )</div>
+  <div id="carton_green">Pink ( query - styles ) </div>
+  <div id="carton_pink">Pink ( styles, type [ slim ] )</div>
+  <div id="carton_lightblue">Lightblue ( styles, query - types [ slim, stretch ] )</div>
+  <div id="carton_hover">Hover</div>
 
-    var css = {
 
-      root: {
-        color: '#ffffff',
-        fontSize: 12
-      },
+  <button>get</button>
+  <button>remove</button>
+  <button>destroy</button>
+  <button>set</button>
+</body>
+<script>
 
-      body: {
-        backgroundColor: '#404040'
-      },
+  var styleTag = document.getElementsByTagName( 'style' )[ 0 ];
+  var F = cartonFactory( { selector: '.', styleTag: styleTag });
+  var baseStyles = { styles: { padding: '20px', color: 'grey', background: 'lightgrey' } };
+  var testFiles = [
+    // GET TYPE
+    [ 'has no type: ', { type: false }, [ 'type', false ] ]
+    ,
+    [ 'has type: ',  { type: true }, [ 'type', true ] ]
+    ,
+    [ 'type is stretch: ', { type: 'stretch' }, [ 'type', 'stretch' ] ]
+    ,
+    [ 'type is stretch or slim: ', { type: [ 'stretch','slim' ] }, ['type', 'stretch'], ['type', 'slim'] ]
+    ,
+    // GET DOM
+    [ 'cartons from a special dom',{ dom:document.getElementById('carton_lightblue')}, [ 'dom', document.getElementById('carton_lightblue')]]
+    ,
+    [ 'cartons from two special doms', { dom: [ document.getElementById( 'carton_lightblue' ), document.getElementById( 'carton_yellow' ) ] }, [ 'dom', document.getElementById( 'carton_lightblue' ) ], [ 'dom', document.getElementById( 'carton_yellow' ) ] ]
+    ,
+    // GET STYLE
+    [ 'has no attribute border: ', { styles: { border: false } }, [ 'styles', false, 'border' ] ]
+    ,
+    [ 'has attribute border: ', { styles: { border: true } }, [ 'styles', true, 'border' ] ]
+    ,
+    [ 'has color that is orange:', { styles: { color: 'orange' } }, [ 'styles', 'orange', 'color' ] ]
+    ,
+    [ 'has a background that is blue and color is red ( doesn\'t exist): ', { styles: { background:'blue', color: 'red' } }, [ 'styles', 'blue', 'background' ] ]
+    ,
+    [ 'has no attribute border and color is red: ', { styles: { border: false, color: 'red' } }, [ 'styles', false, 'border' ],[ 'styles', 'red', 'color' ] ]
+    ,
+    // GET QUERY
+    
+    [ 'has no query min-width: ', { query: { 'min-width': false } }, [ 'query', false, 'min-width' ] ]
+    ,
+    [ 'has query min-width: ', { query: { 'min-width': true } }, [ 'query', false, 'min-width' ] ]
+    ,
+    [ 'has query min-width is 320px: ', { query: { 'min-width': '320px' } }, [ 'query', '320px', 'min-width' ] ]
+    ,
+    [ 'has query min-width is 320px and media is all: ', { query: { 'min-width': '320px', media: 'all' } }, [ 'query', '320px', 'min-width' ], [ 'query', 'all', 'media' ] ]
+  ]
 
-      page: {
-        backgroundColor: '#A6A6A6',
-        marginTop: 20
-      },
-
-      carton: {
-        backgroundColor: '#404040',
-        padding: 20,
-        '_:hover': { color: 'pink' },
-      },
-
-      disrupter_following: {
-        backgroundColor: '#404040',
-        width: 150,
-        height: 50,
-        padding: 20
-      },
-
-      disrupter_not_following: {
-        backgroundColor: '#404040',
-        width: 320, 
-        height: 25, 
-        padding: 20, 
-        marginLeft: -180 
-      },
-
-      twoLines: {
-        backgroundColor: '#404040',
-        backgroundColor: '#404040',
-        padding: 20,
-        lineHeight: 52
-      },
-
-      fitter: {
-        backgroundColor: '#404040',
-        padding: 20,
-        margin: 5
-      }
+  function check ( list, key, value, attr ) {
+    var i = 0;
+    var l = list.length;
+    var collect = [];
+    
+    for ( i; i < l; i++ ) {
+      var specialKey = list[ i ][ key ]
+      if ( value === true && attr ) { collect.push( !! specialKey && !! specialKey[ attr ] ) }
+      else if ( value === false  && attr ) { collect.push( ! specialKey ? true : ! specialKey[ attr ] ) }
+      else if ( attr ) collect.push( ( value.indexOf( specialKey[ attr ] ) > -1 ) )
+      else if ( value === true ) collect.push( !! specialKey )
+      else if ( value === false ) collect.push( ! specialKey )
+      else if ( value instanceof HTMLElement ) collect.push( value === specialKey )
+      else collect.push( ( value.indexOf( specialKey ) > -1 ) );
     }
+    return collect;
+  }
 
-    carton(
-      domo,
-      { selector: '#', showGrid: true, extend: { slim: css.root , stretch: css.root , sticker: css.root , chopped: css.root , fixed: css.root , fit: css.root }, once: function () { console.log( 'ONCE', arguments ) }, on: function () { console.log( 'ON', arguments ) } },
-      [ { minWidth: 320 }, { maxWidth: 320 } ]
-    )
+  function getTest () {
+    var tests = [].concat( testFiles );
+    var l = tests.length;
+    var i = 0;
 
-    with ( css )
+    for ( i ; i < l; i++ ) ! function ( test ) {
+      var msg = test.shift();
+      var current = F.get( test.shift() ) 
+      var l = test.length;
+      var i = 0;
 
-    HTML(
-      HEAD(
-        TITLE( 'jsCarton - sample' )
-        ,
-        META( { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0' } )
-        ,
-        META( { httpEquiv: 'Content-Type', content: 'text/html;charset=utf-8' } )
-        ,
-        LINK( { href: 'reset.css',  rel: 'stylesheet',  type: 'text/css' } )
-        ,
-        STYLE()
-      )
-      ,
-      BODY( [ body, 'center' ]
-      ,
-        SLIM( [ page, false ]
-          ,
-          CELL( [ 600,'auto','auto','auto','auto', 500 ], [ 300, 'auto','auto','auto', 'auto', 500 ]
-            ,
-            CELL( [ 'auto', 'auto', 300, 400 ]
-              , 
-              CELL( [ 300, 200 ]
-                ,
-                STRETCH( [ carton ], 'I am a carton stretched to my parent cells', BR(), '( top_left ) width' )
-              )
-              ,
-              CELL( [ 300, 200 ]
-                ,
-                STICKER( [ disrupter_following, -30, -10  ], 'I am a sticker' )
-                ,
-                FIXED( [ disrupter_not_following, 'auto', 'auto', 15, '50%' ], 'I am fixed' )
-              )
-            )
-            ,
-            CELL( [ 300, 400, 'left' ]
-              ,
-              SLIM( [ carton ], 'As', BR(), 'slim',  BR(), 'cartons' )
-              ,
-              SLIM( [ carton, 'center' ], 'we', BR(), 'stand', BR(), 'in' )
-              ,
-              SLIM( [ carton, 'right' ], 'a', BR(), 'Line' )
-              ,
-              CHOPPED( [ twoLines ], 'As a chopped styleable I can exist on more than one line' )
-            )
-            ,
-            CELL( [ '100%', 100 ]
-              ,
-              FIT( [ fitter, true ], 'I am a fit styleable.', 'I am always fitting to my parent cell' )
-            )
-          )
-        )
-      )
-    )
+      console.log( '---------------------------------' );
+      console.log( msg );
+      console.log( current );
+
+      for ( i; i < l; i++ ) console.log( check.apply( null, [ current ].concat( test[ i ] ) ) );
+    } 
+    ( tests[ i ] )
+    ;
+  }
+
+  function removeTest () {
+    console.log( '---------------------------------' );
+    console.log( 'removed', F.remove({ styles: { color: 'blue'} }) );
+
+  }
+
+  function destroyTest () {
+    console.log( '---------------------------------' );
+    console.log( 'index > DOM:', F.index('dom').length, 'FACTORIES:', F.index('factories').length );
+    console.log( 'destroyed', F.destroy( document.getElementById( 'carton_lightblue' ) ) );
+    console.log( 'index > DOM:', F.index('dom').length, 'FACTORIES:', F.index('factories').length );
+  }
+
+  var typeOnly = F.add(
+    document.getElementById( 'carton_slim' )
+  , { type: 'slim' }
+  )
+
+  var yellow = F.add(
+    document.getElementById( 'carton_yellow' )
+  , baseStyles
+  , { styles: { backgroundColor: 'yellow', color: 'orange' }, align: 'right' }
+  )
+
+  var green = F.add(
+    document.getElementById( 'carton_green' )
+  , baseStyles
+  , { styles: { background: 'lightgreen', color: 'green' }, query: { 'max-width' : '320px' } }
+  )
+
+  var pink = F.add(
+    document.getElementById( 'carton_pink' )
+  , baseStyles
+  , { styles: { background: 'pink', color: 'red' } }
+  , { type: 'slim' }
+  , { type: 'slim', styles: { border: '1px solid red' } }
+  )
+
+  var lightBlue = F.add(
+    document.getElementById( 'carton_lightblue' )
+  , baseStyles
+  , { styles: { background: 'lightblue', color: 'blue' } }
+  , { type: 'slim', query: { 'min-width' : '320px', media: 'all' } }
+  , { type: 'stretch', query: { 'max-width' : '320px', media: 'all'  } }
+  )
+
+  var hover = F.add(
+    document.getElementById( 'carton_hover' )
+  , baseStyles
+  , { styles: { background: 'black', color: 'white'}, pseudo: ':hover'  }
+  , { type: 'slim', query: { 'min-width' : '320px', media: 'all' } }
+  , { type: 'stretch', query: { 'max-width' : '320px', media: 'all'  } }
+  )
+
+  var btn = F.add(
+    document.getElementsByTagName( 'button' )[ 0 ]
+  , baseStyles
+  , { styles: { border: '4px solid grey'} }
+  , { type: 'stretch' }
+  )
+
+ document.getElementsByTagName( 'button' )[ 0 ].onclick = getTest;
+ document.getElementsByTagName( 'button' )[ 1 ].onclick = removeTest;
+ document.getElementsByTagName( 'button' )[ 2 ].onclick = destroyTest;
+ document.getElementsByTagName( 'button' )[ 3 ].onclick = function () { F.set({ type: ['slim', 'stretch'] }, {type:'stretch', styles: { color: 'grey'} } ); }
+
+ console.log( 'Parsed:', F.parse() );
 
 </script>
-<noscript>We are Sorry, but this page needs JavaScript. Please enable it.</noscript>
-</body>
-</html>
