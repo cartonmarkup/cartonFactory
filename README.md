@@ -345,7 +345,7 @@ or add values by using extend in the initial cartonFactory function call:
 cartonFactory does only support modern browsers and Internet Explorer newer than version seven.
 
 ## Licence
-cssCarton is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+cartonFactory is released under the [MIT License](http://www.opensource.org/licenses/MIT).
 
 
 ## Thanks allot
