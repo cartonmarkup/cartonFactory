@@ -281,8 +281,32 @@ settings are named cartons.
   the destroy command:
         
         F.destroy( document.getElementById( 'cartonify' ) )
+  
   The destroy command will return a list of all destroyed cartons and the updated 
   css-code as a string.  `{ cartons: ..., parsed: ... }`
+
+* **suspendParser**
+  If you have to add many nodes at once, everything will slow down – because the factory will parse
+  the stylesheet again and again for every added carton. To avoid that you can suspend the parser anytime you 
+  want:
+        
+        // suspend parser
+        
+        F.suspendParser( true );
+        
+        // add many things
+        
+        for ( i in list ) {
+          F.add( document.getElementById( list[i] ), { styles: color: 'pink } )
+        }
+        
+        // enable parser again 
+        
+        F.suspendParser( false );
+        
+        // trigger parse to apply changes 
+        
+        F.parse();
 
 ## cartonObject
 The following object is an copy of the cartonObject inside of the factory source. You can overwrite 
