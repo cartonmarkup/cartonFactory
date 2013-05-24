@@ -285,7 +285,7 @@ settings are named cartons.
   The destroy command will return a list of all destroyed cartons and the updated 
   css-code as a string.  `{ cartons: ..., parsed: ... }`
 
-* **suspendParser**
+* **suspendParser:**
   If you have to add many nodes at once, everything will slow down – because the factory will parse
   the stylesheet again and again for every added carton. To avoid that you can suspend the parser anytime you 
   want:
