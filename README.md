@@ -1,6 +1,6 @@
 # cartonFactory
 This factory method has been build to support developers with a default api to add, change or remove
-[cssCarton](http://css.carton.io/) based styling to an DOM-node managed by pure JavaScript.
+[cssCarton](http://github.com/cartonmarkup/cssCarton) based styling to an DOM-node managed by pure JavaScript.
 
 ## Parseing
 
